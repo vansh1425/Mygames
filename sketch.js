@@ -1,10 +1,12 @@
 var ironman,img1,img2,img3,img4,img5,img6,img7;
 var backgroundImg,b2,planet;
-var laser,laser1,lai1,lai2,lai3,laserGroup,laserGroup1,laserGroup2;
+var laser,laser1,laser2,lai1,lai2,lai3,laserGroup,laserGroup1,laserGroup2;
 var thanoes,t1,t2,t3,t4;
-var obstaclesGroup,spaceShipGroup,powerGroup,asteroid,spaceship,power;
+var obstaclesGroup,asteroid,spaceship,power;
 var repulsorsound;
+var planetGroup,Moon,alienPlanet,BlackHole;
 var ground;
+ var life = 100 ;
 var gameState = "serve";
 function preload(){
 img1 =loadImage("ironman.png");
@@ -26,15 +28,16 @@ power = loadImage("power.png");
 img7 = loadImage("ironman 1.png");
 lai3 = loadImage("lase3.png");
 repulsorsound = loadSound("repulsor sound.mp3");
+alienPlanet = loadImage("planet.png");
+Moon = loadImage("moon.png");
+BlackHole = loadImage("blackhole.png")
 }
 function setup() {
-  createCanvas(1000,500);
+  createCanvas(800,500);
   ground = createSprite(750,120);
   ground.addImage(backgroundImg);
   ground.scale=5.4;
- //planet = createSprite(200,350);
- //planet.addImage(b2)
- //planet.scale=2;
+  planetGroup =new Group();
   ironman =createSprite(150, 370, 50, 50);
  
  thanoes =createSprite(650,380,50,50);
@@ -45,8 +48,7 @@ function setup() {
  laserGroup1 = new Group();
  laserGroup2 =new Group();
  obstaclesGroup =new Group();
- spaceShipGroup = new Group();
- powerGroup = new Group();
+
 }
 
 function draw() {
@@ -60,11 +62,13 @@ function draw() {
       }
    
   if(gameState === "play"){
+    spawnPlanets(); 
     ironman.addImage(img1);
     if (ground.x < 0){
       ground.x = ground.width/2;
     }
     ground.velocityX=-2;
+   
     if(keyDown (UP_ARROW) ){
     ironman.y = ironman.y-5;
      ironman.addImage(img2);
@@ -74,7 +78,7 @@ function draw() {
   }
   if(keyDown(DOWN_ARROW)){
     ironman.y=ironman.y+5;
-    ironman.addImage(img2);  
+    ironman.addImage(img2);       
   }
 
    if(keyDown(RIGHT_ARROW)){
@@ -105,15 +109,16 @@ function draw() {
         }
         if(keyDown("X")){
           ironman.addImage(img7);
-         
+       
           createlaser2()
         }
-        spawnObstacles();    
+        spawnObstacles();   
+        
       }
   drawSprites();
 }
 function createlaser() {
-  var laser= createSprite(100, 100, 60, 10);
+  laser= createSprite(100, 100, 60, 10);
   laser.addImage(lai1);
   laser.x = ironman.x+200;
   laser.y=ironman.y-70;
@@ -124,7 +129,7 @@ function createlaser() {
    
 }
 function createlaser1() {
-  var laser1= createSprite(100, 100, 60, 10);
+   laser1= createSprite(100, 100, 60, 10);
   laser1.addImage(lai2);
   laser1.x = ironman.x+160;
   laser1.y=ironman.y-20;
@@ -135,14 +140,16 @@ function createlaser1() {
    
 }
 function createlaser2() {
-  var laser2= createSprite(100, 100, 60, 10);
+   laser2= createSprite(100, 100, 60, 10);
   laser2.addImage(lai3);
   laser2.velocityX = 3;
   laser2.x = ironman.x+100;
   laser2.y=ironman.y-80;
   laserGroup2.add(laser2); 
   laser2.lifetime = 1;
- 
+ if(keyDown("G")){
+  laser2.x=laser.x+200;
+ }
   return laser1;
    
 }
@@ -151,37 +158,68 @@ function serve(){
 ironman.addImage(img6);
 thanoes.addImage(t3);
 }
+var obstacle;
 function spawnObstacles() {
-  if(frameCount % 250 === 0) {
-    var obstacle = createSprite(600,165,10,40);
-     obstacle.addImage(asteroid);
-     obstacle.scale=0.2;
-      obstacle.velocityX = -5
-      obstacle.y = Math.round(random(10,550));
-     obstacle.lifetime = 300;
-     var spaceships= createSprite(600,165,10,40);
-     spaceships.addImage(spaceship);
-     spaceships.scale=2;
-     spaceships.velocityX = -5;
-     spaceships.y = Math.round(random(1,550));
-     spaceships.lifetime = 300;
-     var powers = createSprite(600,165,10,40);
-     powers.addImage(power);
-     powers.scale=1;
-     powers.velocityX = -5;
-     powers.lifetime = 300;
-      
-      powers.y = Math.round(random(20,550));
-          
-   powers.depth = spaceships.depth;
-     powers.depth = powers.depth+0.4;
-     powers.depth = obstacle.depth;
-     powers.depth = powers.depth+0.4;
-      obstacle.depth = spaceships.depth;
-     obstacle.depth = obstacle.depth+0.2;
+  if(frameCount % 70 === 0) {
+     obstacle = createSprite(600,400,10,40);
+    //obstacle.debug = true;
+    obstacle.velocityX = -6;
+    
+    //generate random obstacles
+    var rand = Math.round(random(1,3));
+    switch(rand) {
+      case 1: obstacle.addImage(asteroid);
+               obstacle.scale=0.2;
+               obstacle.rotationSpeed = 3;
+              break;
+      case 2: obstacle.addImage(spaceship);
+              break;
+      case 3: obstacle.addImage(power);
+              break;
+      default: break;
+    }
+    obstacle.y=Math.round(random(50,440))
+    //assign scale and lifetime to the obstacle           
+    //obstacle.scale = 0.5;
+    obstacle.lifetime = 300;
+    obstacle.depth = ironman.depth;
+    ironman.depth+=1
     //add each obstacle to the group
     obstaclesGroup.add(obstacle);
-     spaceShipGroup.add(spaceships);
-     powerGroup.add(powers);
+  }
 }
+function spawnPlanets() {
+  //write code here to spawn the clouds
+  if (frameCount % 250 === 0) {
+    var planets = createSprite(600,100,10,40);
+    //obstacle.debug = true;
+    planets.velocityX = -6;
+    
+    //generate random obstacles
+    var rand = Math.round(random(1,3));
+    switch(rand) {
+      case 1: planets.addImage(alienPlanet);
+              // planets.scale=0.4;
+              break;
+      case 2: planets.addImage(Moon);
+             planets.rotationSpeed = -1;
+              break;
+      case 3: planets.addImage(BlackHole);
+              break;
+      default: break;
+    }
+    
+    //assign scale and lifetime to the obstacle           
+    planets.scale = 1;
+    planets.lifetime = 100;
+    planets .depth = ironman.depth;
+    ironman.depth +=1;
+    planets.depth = obstacle.depth;
+    obstacle.depth+=2;
+    //add each cloud to the group
+    planetGroup.add(planets);
+  }
+  
 }
+
+
